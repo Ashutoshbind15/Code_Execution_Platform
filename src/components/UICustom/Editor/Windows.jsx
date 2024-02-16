@@ -17,13 +17,13 @@ export function ResizableDemo() {
       direction="horizontal"
       className="rounded-lg border bg-primary text-primary-foreground"
     >
-      <ResizablePanel className="">
+      <ResizablePanel className="" defaultSize={90}>
         <div className="flex h-[200px] items-center justify-center p-6">
           <span className="font-semibold">One</span>
         </div>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel className="">
+      <ResizablePanel className="" defaultSize={90}>
         <Editor
           height="90vh"
           defaultLanguage="javascript"
