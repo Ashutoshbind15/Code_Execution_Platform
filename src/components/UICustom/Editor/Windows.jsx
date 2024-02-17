@@ -9,8 +9,8 @@ import {
 import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
 import { useState } from "react";
 
-export function ResizableDemo() {
-  const [lang, setLang] = useState("javascript");
+export function ResizableDemo({ setContent, languageValue }) {
+  console.log(languageValue);
 
   return (
     <ResizablePanelGroup
@@ -26,10 +26,10 @@ export function ResizableDemo() {
       <ResizablePanel className="" defaultSize={90}>
         <Editor
           height="90vh"
-          defaultLanguage="javascript"
+          defaultLanguage="cpp"
           defaultValue="// some comment"
-          onChange={(val) => console.log(val)}
-          language={lang}
+          onChange={(val) => setContent(val)}
+          language={languageValue}
         />
       </ResizablePanel>
     </ResizablePanelGroup>
