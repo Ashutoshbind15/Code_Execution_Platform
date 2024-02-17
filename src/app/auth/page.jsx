@@ -1,6 +1,5 @@
 "use client";
 
-import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs";
 import React, { useEffect, useState } from "react";
 
 const AuthPage = () => {
@@ -13,12 +12,7 @@ const AuthPage = () => {
   if (!isDOMMounted) {
     return null;
   }
-  return (
-    <div>
-      <LoginLink>Sign in</LoginLink>
-      <RegisterLink>Sign up</RegisterLink>
-    </div>
-  );
+  return <div></div>;
 };
 
 export default AuthPage;
