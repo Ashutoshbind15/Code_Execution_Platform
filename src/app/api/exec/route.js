@@ -5,9 +5,7 @@ export const POST = async (req, res) => {
   // instance of judge0
 
   const jsonBody = await req.json();
-
-  const { srcCode, langId } = jsonBody;
-
+  const { srcCode, langId, inputTestCase } = jsonBody;
   console.log(srcCode.toString(), langId);
 
   const options = {
@@ -17,15 +15,15 @@ export const POST = async (req, res) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      source_code: btoa(srcCode.toString()),
+      source_code: srcCode,
       language_id: +langId,
-      //   stdin: btoa("world"),
+      stdin: inputTestCase,
     }),
   };
 
   try {
     const res = await fetch(
-      `${engineURI}/submissions/?base64_encoded=true&fields=*`,
+      `${engineURI}/submissions/?base64_encoded=false&fields=*`,
       options
     );
     const data = await res.json();
@@ -45,15 +43,20 @@ export const GET = async (req) => {
     method: "GET",
   };
 
-  try {
-    const res = await fetch(
-      `${engineURI}/submissions/${token}?base64_encoded=true&fields=*`,
-      options
-    );
-    const data = await res.json();
-    const strData = atob(data.stdout);
-    return NextResponse.json(strData, { status: 200 });
-  } catch (e) {
-    return NextResponse.json({ msg: "Error" }, { status: 400 });
+  while (true) {
+    try {
+      const res = await fetch(
+        `${engineURI}/submissions/${token}?base64_encoded=false&fields=*`,
+        options
+      );
+      const data = await res.json();
+      console.log(data);
+      if (data.status.id === 3) {
+        const strData = data.stdout;
+        return NextResponse.json({ res: strData }, { status: 200 });
+      }
+    } catch (e) {
+      return NextResponse.json(e, { status: 400 });
+    }
   }
 };

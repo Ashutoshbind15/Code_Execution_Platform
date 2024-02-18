@@ -23,7 +23,7 @@ export function ResizableDemo({ setContent, languageValue }) {
         </div>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel className="" defaultSize={90}>
+      <ResizablePanel className="flex" defaultSize={90}>
         <Editor
           height="90vh"
           defaultLanguage="cpp"
