@@ -106,4 +106,6 @@ const TestCaseView = forwardRef(
   }
 );
 
+TestCaseView.displayName = "TestCaseView";
+
 export default TestCaseView;
