@@ -10,8 +10,6 @@ import Editor, { DiffEditor, useMonaco, loader } from "@monaco-editor/react";
 import { useState } from "react";
 
 export function ResizableDemo({ setContent, languageValue }) {
-  console.log(languageValue);
-
   return (
     <ResizablePanelGroup
       direction="horizontal"

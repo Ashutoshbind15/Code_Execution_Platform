@@ -7,7 +7,6 @@ import { Skeleton } from "../ui/skeleton";
 
 const Navbar = () => {
   const { data, status } = useSession();
-  console.log(data);
 
   return (
     <div className="flex w-full justify-between px-8 sticky top-0 py-4 text-primary font-semibold">
