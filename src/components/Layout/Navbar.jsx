@@ -4,9 +4,12 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Skeleton } from "../ui/skeleton";
+import { useUser } from "@/lib/hooks/queries";
 
 const Navbar = () => {
-  const { data, status } = useSession();
+  const { user, isUserLoading, isUserError, userError } = useUser();
+
+  console.log(user);
 
   return (
     <div className="flex w-full justify-between px-8 sticky top-0 py-4 text-primary font-semibold">
@@ -16,26 +19,22 @@ const Navbar = () => {
         </Link>
       </div>
 
-      {status === "loading" && (
+      {isUserLoading && (
         <Skeleton className={"w-[100px] h-[20px] rounded-full bg-slate-600"} />
       )}
 
       <div className="flex gap-x-4 items-center">
-        {status === "authenticated" && (
+        {user && (
           <Avatar>
-            <AvatarImage src={data?.user?.image} />
+            <AvatarImage src={user?.image} />
             <AvatarFallback>
-              {data?.user?.name?.length && data?.user?.name[0]}
+              {user?.name?.length && user?.name[0]}
             </AvatarFallback>
           </Avatar>
         )}
-        {status === "authenticated" && (
-          <button onClick={() => signOut()}>Sign Out</button>
-        )}
+        {user && <button onClick={() => signOut()}>Sign Out</button>}
       </div>
-      {status === "unauthenticated" && (
-        <button onClick={() => signIn("github")}>Sign In</button>
-      )}
+      {isUserError && <button onClick={() => signIn("github")}>Sign In</button>}
     </div>
   );
 };

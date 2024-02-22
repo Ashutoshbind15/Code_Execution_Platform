@@ -1,222 +1,160 @@
 "use client";
 
+import TestCaseView from "@/components/UICustom/Editor/TestCaseView";
 import { Button } from "@/components/ui/button";
-
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import React, { useState } from "react";
 
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { useState } from "react";
-import TestCaseView from "@/components/UICustom/Editor/TestCaseView";
-
 const CreateProblemPage = () => {
-  const form = useForm({
-    defaultValues: {
-      title: "",
-    },
-  });
-
-  const tcForm = useForm({
-    defaultValues: {
-      input: "1 2 3 4",
-      output: "10",
-    },
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    difficulty: "",
+    input: "",
+    output: "",
   });
 
   const [testcases, setTestcases] = useState([]);
 
-  const onSubmit = (values) => {
-    console.log(values);
-    toast("Problem created successfully");
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle testcase form
+  const [tcInput, setTcInput] = useState("");
+  const [tcOutput, setTcOutput] = useState("");
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form Data:", formData);
+    console.log("Test Cases:", testcases);
+    // Add logic to send data to API or another state
+  };
+
+  // Add a new testcase
+  const addTestcase = (e) => {
+    e.preventDefault();
+    setTestcases([...testcases, { input: tcInput, output: tcOutput }]);
+    setTcInput("");
+    setTcOutput("");
   };
 
   return (
     <div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-12 ml-6">
-          <div className="flex items-center">
-            <div className="w-1/2 space-y-8">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="placeholder" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Description for your problem display name.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Title</label>
+          <Input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+          />
+        </div>
 
-              {/* Textarea for problem description */}
+        <div>
+          <label>Description</label>
+          <Textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+          />
+        </div>
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>description</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="placeholder" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Description for your problem description.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div>
+          <label>Difficulty</label>
+          <Select
+            name="difficulty"
+            value={formData.difficulty}
+            onValueChange={(e) =>
+              handleChange({ target: { name: "difficulty", value: e } })
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select a Difficulty Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Difficulty</SelectLabel>
 
-              {/* Choose the problem difficulty from easy, medium and hard */}
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
-              <FormField
-                control={form.control}
-                name="difficulty"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Difficulty</FormLabel>
-                    <FormControl>
-                      <Select>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Difficulty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="easy">Easy</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="hard">Hard</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormDescription>
-                      Description for your problem difficulty.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div>
+          <label>Input</label>
+          <Textarea
+            name="input"
+            value={formData.input}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <label>Output</label>
+          <Textarea
+            name="output"
+            value={formData.output}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          {testcases.map((testcase, index) => (
+            <div
+              key={index}
+              className="my-2 border-y-2 border-black border-dashed"
+            >
+              <p>Input: {testcase.input}</p>
+              <p>Output: {testcase.output}</p>
             </div>
+          ))}
 
-            <div className="space-y-8 w-1/2 px-4">
-              <FormField
-                control={form.control}
-                name="input"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>input</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="placeholder" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Description for your problem input.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div>
+            <label>Testcase Input</label>
+            <Input
+              type="text"
+              value={tcInput}
+              onChange={(e) => setTcInput(e.target.value)}
+            />
 
-              <FormField
-                control={form.control}
-                name="output"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>output</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="placeholder" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Description for your problem output.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-y-6 mt-6 items-center">
-            <div className="flex items-center gap-x-4">
-              {testcases.map((_, i) => (
-                <TestCaseView key={i} i={i} testcase={_} />
-              ))}
-            </div>
+            <label>Testcase Output</label>
+            <Input
+              type="text"
+              value={tcOutput}
+              onChange={(e) => setTcOutput(e.target.value)}
+            />
 
-            <Dialog>
-              <DialogTrigger>
-                <Button type="button">Add Testcases</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Want new testcases?</DialogTitle>
-                  <DialogDescription>
-                    Fill the following to add testcases
-                  </DialogDescription>
-                </DialogHeader>
-
-                <Form {...tcForm}>
-                  <form
-                    onSubmit={form.handleSubmit((vals) => {
-                      console.log(vals);
-                    })}
-                    className="space-y-8"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Username</FormLabel>
-                          <FormControl>
-                            <Input placeholder="shadcn" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This is your public display name.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit">Submit</Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-            <Button type="submit" className="w-max">
-              Submit
+            <Button type="button" onClick={addTestcase}>
+              Add Testcase
             </Button>
           </div>
-        </form>
-      </Form>
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
     </div>
   );
 };
