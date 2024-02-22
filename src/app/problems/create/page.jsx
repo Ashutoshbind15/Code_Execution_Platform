@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
 
 const CreateProblemPage = () => {
   // Form state
@@ -42,11 +43,13 @@ const CreateProblemPage = () => {
   const [tcOutput, setTcOutput] = useState("");
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form Data:", formData);
     console.log("Test Cases:", testcases);
     // Add logic to send data to API or another state
+
+    const { data } = await axios.post("/api/problems", { formData, testcases });
   };
 
   // Add a new testcase

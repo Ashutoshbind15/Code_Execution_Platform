@@ -5,7 +5,7 @@ const problemSchema = new mongoose.Schema({
   description: { type: String },
   testcases: [
     {
-      inputs: String,
+      input: String,
       output: String,
     },
   ],

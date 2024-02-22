@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableBody,
@@ -8,24 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const psetSize = 10;
-
-const psetGenerator = (psetSize) => {
-  const pset = [];
-  for (let i = 0; i < psetSize; i++) {
-    pset.push({
-      title: `Problem ${i + 1}`,
-      difficulty: "Easy",
-      submissions: 100,
-    });
-  }
-  return pset;
-};
-
-const problems = psetGenerator(psetSize);
+import { useProblems } from "@/lib/hooks/queries";
+import { useRouter } from "next/navigation";
 
 const ProblemsPage = () => {
+  const { problems } = useProblems();
+
+  const rtr = useRouter();
+
   return (
     <Table>
       <TableCaption>A list of our comprehensive pset.</TableCaption>
@@ -34,27 +26,33 @@ const ProblemsPage = () => {
           <TableHead className="w-[100px]">S. No</TableHead>
           <TableHead>Title</TableHead>
           <TableHead>Difficulty</TableHead>
-          <TableHead className="text-right">Submissions</TableHead>
+          {/* <TableHead className="text-right">Submissions</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {problems.map((problem, i) => (
-          <TableRow key={i}>
+        {problems?.map((problem, i) => (
+          <TableRow
+            key={i}
+            className="cursor-pointer"
+            onClick={() => {
+              rtr.push(`/problems/${problem._id}`);
+            }}
+          >
             <TableCell>{i + 1}</TableCell>
-            <TableCell>{problem.title}</TableCell>
-            <TableCell>{problem.difficulty}</TableCell>
-            <TableCell className="text-right">{problem.submissions}</TableCell>
+            <TableCell>{problem?.title}</TableCell>
+            <TableCell>{problem?.difficulty}</TableCell>
+            {/* <TableCell className="text-right">{problem?.submissions}</TableCell> */}
           </TableRow>
         ))}
       </TableBody>
-      <TableFooter>
+      {/* <TableFooter>
         <TableRow>
           <TableCell colSpan={3}>Total Submissions</TableCell>
           <TableCell className="text-right">
             {problems.reduce((acc, problem) => acc + problem.submissions, 0)}
           </TableCell>
         </TableRow>
-      </TableFooter>
+      </TableFooter> */}
     </Table>
   );
 };

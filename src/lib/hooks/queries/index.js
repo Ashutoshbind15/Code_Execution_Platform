@@ -1,4 +1,4 @@
-import { getProblems, getUser } from "@/lib/apis";
+import { getProblem, getProblems, getUser } from "@/lib/apis";
 import { useQuery } from "@tanstack/react-query";
 
 export const useProblems = () => {
@@ -11,6 +11,18 @@ export const useProblems = () => {
     isProblemsLoading: isLoading,
     isProblemsError: isError,
     problemsError: error,
+  };
+};
+export const useProblem = (id) => {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["problems", `${id}`],
+    queryFn: () => getProblem(id),
+  });
+  return {
+    problem: data?.problem,
+    isProblemLoading: isLoading,
+    isProblemError: isError,
+    problemError: error,
   };
 };
 

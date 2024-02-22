@@ -9,8 +9,6 @@ import { useUser } from "@/lib/hooks/queries";
 const Navbar = () => {
   const { user, isUserLoading, isUserError, userError } = useUser();
 
-  console.log(user);
-
   return (
     <div className="flex w-full justify-between px-8 sticky top-0 py-4 text-primary font-semibold">
       <div className="flex-1">

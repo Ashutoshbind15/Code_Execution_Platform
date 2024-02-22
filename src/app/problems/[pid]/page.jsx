@@ -25,11 +25,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { compareOutputs } from "@/lib/helperFunctions/exec/outputComp";
+import { useProblem } from "@/lib/hooks/queries";
 
 const ProblemPage = ({ params }) => {
   const pid = params.pid;
 
-  console.log(pid);
+  const { problem, isProblemLoading, isProblemError, problemError } =
+    useProblem(pid);
 
   const [content, setContent] = useState("");
   const [languageValue, setlanguageValue] = useState("javascript");
@@ -39,6 +41,20 @@ const ProblemPage = ({ params }) => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (problem) {
+      console.log("inside erff");
+      console.log(problem?.testcases);
+      for (let i = 0; i < problem?.testcases.length; i++) {
+        const tc = problem.testcases[i];
+        tc.res = "";
+        tc.passed = 0;
+        console.log(tc);
+        setTcs((prev) => [...prev, tc]);
+      }
+    }
+  }, [problem]);
 
   const setTestCase = (i, params) => {
     setTcs((p) => {
@@ -83,6 +99,7 @@ const ProblemPage = ({ params }) => {
           setContent={setContent}
           languageValue={languageValue}
           setlanguageValue={setlanguageValue}
+          problem={problem}
         />
         <div className="flex flex-col justify-between py-6">
           <div className="flex flex-col gap-y-4 px-3">
