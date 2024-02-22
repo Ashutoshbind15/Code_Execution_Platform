@@ -9,12 +9,19 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { compareOutputs } from "@/lib/helperFunctions/exec/outputComp";
+import { LoadingOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
 const TestCaseView = ({
   i,
-  testcase = { input: "1 2 3 4", output: "10", res: "", passed: 0 },
+  testcase = {
+    input: "1 2 3 4",
+    output: "10",
+    res: "",
+    passed: 0,
+    isRunning: true,
+  },
   content,
   setTestCase,
 }) => {
@@ -25,6 +32,10 @@ const TestCaseView = ({
     console.log(compareOutputs(testcase?.res, testcase.output));
 
   const runner = async () => {
+    setTestCase(i, {
+      isRunning: true,
+    });
+
     const { data } = await axios.post("/api/exec", {
       srcCode: content,
       langId: 54,
@@ -53,6 +64,7 @@ const TestCaseView = ({
         setTestCase(i, {
           res: data.res,
           passed: isTestCasePassed === true ? 1 : -1,
+          isRunning: false,
         });
       };
       fetchToken();
@@ -63,23 +75,33 @@ const TestCaseView = ({
     <div>
       <Popover>
         <PopoverTrigger asChild>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              testcase?.passed === 0
-                ? "bg-primary text-primary-foreground"
-                : null
-            } ${
-              testcase?.passed === 1
-                ? "bg-green-500 text-primary-foreground"
-                : null
-            } ${
-              testcase?.passed === -1
-                ? "bg-red-500 text-primary-foreground"
-                : null
-            }`}
-          >
-            {i}
-          </button>
+          <div>
+            {!testcase?.isRunning && (
+              <button
+                className={`px-4 py-2 rounded-md ${
+                  testcase?.passed === 0
+                    ? "bg-primary text-primary-foreground"
+                    : null
+                } ${
+                  testcase?.passed === 1
+                    ? "bg-green-500 text-primary-foreground"
+                    : null
+                } ${
+                  testcase?.passed === -1
+                    ? "bg-red-500 text-primary-foreground"
+                    : null
+                }`}
+              >
+                {i}
+              </button>
+            )}
+
+            {testcase?.isRunning && (
+              <button className="bg-primary text-primary-foreground p-2 rounded-xl">
+                <LoadingOutlined />
+              </button>
+            )}
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-80 mr-3" side="left" align="start">
           <div className="flex h-5 items-center space-x-4 text-sm">

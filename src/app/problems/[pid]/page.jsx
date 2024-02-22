@@ -50,6 +50,7 @@ const ProblemPage = ({ params }) => {
         const tc = problem.testcases[i];
         tc.res = "";
         tc.passed = 0;
+        tc.isRunning = false;
         console.log(tc);
         setTcs((prev) => [...prev, tc]);
       }
@@ -132,7 +133,10 @@ const ProblemPage = ({ params }) => {
                   <Form {...tcForm}>
                     <form
                       onSubmit={tcForm.handleSubmit((vs) => {
-                        setTcs((p) => [...p, { ...vs, res: "", passed: 0 }]);
+                        setTcs((p) => [
+                          ...p,
+                          { ...vs, res: "", passed: 0, isRunning: false },
+                        ]);
                       })}
                       className="flex flex-col gap-y-4 items-stretch"
                     >
@@ -179,6 +183,7 @@ const ProblemPage = ({ params }) => {
                 const tokens = [];
 
                 for (let i = 0; i < tcs.length; i++) {
+                  setTestCase(i, { isRunning: true });
                   const token = await runner(tcs[i]);
                   tokens.push(token);
                 }
@@ -201,6 +206,7 @@ const ProblemPage = ({ params }) => {
                   setTestCase(i, {
                     res: data.res,
                     passed: isTestCasePassed === true ? 1 : -1,
+                    isRunning: false,
                   });
                 }
               }}
