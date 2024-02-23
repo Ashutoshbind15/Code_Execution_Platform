@@ -22,11 +22,8 @@ export const GET = async () => {
     model: Submission,
   });
 
-  // ptosubs is an array of all the submissions made by the user
-  // each submissionSchema has a property submissions which is an array of all the submissions made by the user to the problem
-  // each submission has a property success which is a boolean
-
   let numberOfCorrectProlemsSolved = 0;
+  const correctProblems = [];
 
   for (let psub of ptosubs) {
     const submissions = psub.submissions;
@@ -42,21 +39,28 @@ export const GET = async () => {
     }
     if (correct) {
       numberOfCorrectProlemsSolved += 1;
+      correctProblems.push(psub.pid);
     }
   }
-
-  console.log(numberOfCorrectProlemsSolved);
 
   const numberOfProblemsCreated = await Problem.find({
     contributedBy: user._id,
   }).countDocuments();
 
+  const problemsCreated = await Problem.find({ contributedBy: user._id });
+
+  const populatedProblems = await Problem.find({
+    _id: { $in: correctProblems },
+  });
+
   return NextResponse.json(
     {
       user: {
         ...user,
-        problemsSolved: numberOfCorrectProlemsSolved,
-        contributions: numberOfProblemsCreated,
+        numberOfProblemsSolved: numberOfCorrectProlemsSolved,
+        numberOfContributions: numberOfProblemsCreated,
+        problemsSolved: populatedProblems,
+        problemsCreated: problemsCreated,
       },
     },
     { status: 200 }

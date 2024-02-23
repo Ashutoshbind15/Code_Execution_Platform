@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import { useUser } from "@/lib/hooks/queries";
+import Link from "next/link";
 
 const psetSize = 10;
 
@@ -58,10 +59,32 @@ const contests = contestGenerator(psetSize);
 const ProfilePage = () => {
   const { user, isUserLoading, isUserError, userError } = useUser();
 
+  if (isUserLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isUserError) {
+    return <div>{userError.message}</div>;
+  }
+
+  const {
+    numberOfProblemsSolved,
+    numberOfContributions,
+    problemsSolved,
+    problemsCreated,
+  } = user;
+
+  console.log(
+    numberOfContributions,
+    problemsCreated,
+    problemsSolved,
+    numberOfProblemsSolved
+  );
+
   return (
     <div className="flex flex-col items-center w-full">
       <Card className="w-1/3 my-12">
-        <CardHeader>
+        <CardHeader className="mt-4">
           <div className="flex items-center justify-around">
             <Avatar>
               <AvatarImage src={user?.image} />
@@ -77,40 +100,49 @@ const ProfilePage = () => {
         </CardHeader>
 
         <CardContent>
-          <div className="flex gap-x-4 items-center justify-around">
-            <div className="flex flex-col">
+          <div className="flex items-center justify-between py-6 px-8">
+            <div className="flex flex-col items-center">
               <div className="font-bold text-xl">Problems Solved</div>
-              <div>300+</div>
+              <div className="my-3 text-2xl font-bold text-primary">
+                {numberOfProblemsSolved}
+              </div>
             </div>
 
             <Separator orientation="vertical" className="mx-2" />
 
-            <div className="flex flex-col">
-              <div className="font-bold text-xl">Problems Solved</div>
-              <div>300+</div>
+            <div className="flex flex-col items-center">
+              <div className="font-bold text-xl">Contributions</div>
+              <div className="my-3 text-2xl font-bold text-primary">
+                {numberOfContributions}
+              </div>
             </div>
 
             <Separator orientation="vertical" className="mx-2" />
 
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <div className="font-bold text-xl">Problems Solved</div>
               <div>300+</div>
             </div>
 
-            <Separator orientation="vertical" className="mx-2" />
+            <Separator orientation="vertical" className="mx-2" /> */}
           </div>
         </CardContent>
 
         <CardFooter className="flex flex-col ">
-          <Button className="my-2 w-3/4">Edit Profile</Button>
-          <Button className="my-2 w-3/4">Edit Profile</Button>
+          {/* <Button className="my-2 w-3/4">Edit Profile</Button> */}
+          <Link
+            className="my-2 w-3/4 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-center"
+            href="/"
+          >
+            Return Home
+          </Link>
         </CardFooter>
       </Card>
 
       <Tabs defaultValue="problems" className="w-full">
         <TabsList className="w-full flex items-center justify-around">
           <TabsTrigger value="problems">Problems</TabsTrigger>
-          <TabsTrigger value="contests">Contests</TabsTrigger>
+          <TabsTrigger value="contests">Contests (Coming Soon)</TabsTrigger>
           <TabsTrigger value="contributions">Contributions</TabsTrigger>
         </TabsList>
         <TabsContent value="problems">
@@ -121,17 +153,17 @@ const ProfilePage = () => {
                 <TableHead className="w-[100px]">S. No</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Difficulty</TableHead>
-                <TableHead className="text-right">Submissions</TableHead>
+                <TableHead className="text-right"># Test Cases</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {problems.map((problem, i) => (
+              {problemsSolved?.map((problem, i) => (
                 <TableRow key={i}>
                   <TableCell>{i + 1}</TableCell>
-                  <TableCell>{problem.title}</TableCell>
-                  <TableCell>{problem.difficulty}</TableCell>
+                  <TableCell>{problem?.title}</TableCell>
+                  <TableCell>{problem?.difficulty}</TableCell>
                   <TableCell className="text-right">
-                    {problem.submissions}
+                    {problem?.testcases?.length}
                   </TableCell>
                 </TableRow>
               ))}
@@ -151,7 +183,7 @@ const ProfilePage = () => {
         </TabsContent>
         <TabsContent value="contests">
           <Table>
-            <TableCaption>Contests</TableCaption>
+            <TableCaption>Contests (Coming Soon)</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">S. No</TableHead>
@@ -183,9 +215,40 @@ const ProfilePage = () => {
           </Table>
         </TabsContent>
         <TabsContent value="contributions">
-          <div className="flex items-center justify-center">
-            <div className="mt-6">View your Contributions here.</div>
-          </div>
+          <Table>
+            <TableCaption>A list of our comprehensive pset.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">S. No</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Difficulty</TableHead>
+                <TableHead className="text-right"># Test Cases</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {problemsCreated?.map((problem, i) => (
+                <TableRow key={i}>
+                  <TableCell>{i + 1}</TableCell>
+                  <TableCell>{problem?.title}</TableCell>
+                  <TableCell>{problem?.difficulty}</TableCell>
+                  <TableCell className="text-right">
+                    {problem?.testcases?.length}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3}>Total Submissions</TableCell>
+                <TableCell className="text-right">
+                  {problems.reduce(
+                    (acc, problem) => acc + problem.submissions,
+                    0
+                  )}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
         </TabsContent>
       </Tabs>
     </div>
