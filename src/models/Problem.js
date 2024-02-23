@@ -12,6 +12,7 @@ const problemSchema = new mongoose.Schema({
   inputDescription: { type: String },
   outputDescription: { type: String },
   difficulty: { type: String },
+  contributedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 const Problem =

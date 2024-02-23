@@ -22,9 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import React from "react";
+import { useUser } from "@/lib/hooks/queries";
 
 const psetSize = 10;
 
@@ -57,8 +56,7 @@ const problems = psetGenerator(psetSize);
 const contests = contestGenerator(psetSize);
 
 const ProfilePage = () => {
-  const rtr = useRouter();
-  const { data: session } = useSession();
+  const { user, isUserLoading, isUserError, userError } = useUser();
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -66,13 +64,13 @@ const ProfilePage = () => {
         <CardHeader>
           <div className="flex items-center justify-around">
             <Avatar>
-              <AvatarImage src={session?.user?.image} />
+              <AvatarImage src={user?.image} />
               <AvatarFallback>
-                {session?.user?.name?.length && session?.user?.name[0]}
+                {user?.name?.length && user?.name[0]}
               </AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle>{session?.user?.name}</CardTitle>
+              <CardTitle>{user?.name}</CardTitle>
               <CardDescription>Veteran</CardDescription>
             </div>
           </div>

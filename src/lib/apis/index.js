@@ -13,3 +13,8 @@ export const getUser = async () => {
   const { data } = await axios.get("/api/user");
   return data;
 };
+
+export const getSubmissions = async (pid) => {
+  const { data } = await axios.get(`/api/submissions?pid=${pid}`);
+  return data;
+};

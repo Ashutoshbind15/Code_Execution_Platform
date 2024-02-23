@@ -24,6 +24,7 @@ const TestCaseView = ({
   },
   content,
   setTestCase,
+  languageId,
 }) => {
   const [token, setToken] = useState(null);
   const [inputWindow, setInputWindow] = useState(true);
@@ -36,9 +37,11 @@ const TestCaseView = ({
       isRunning: true,
     });
 
+    console.log(languageId);
+
     const { data } = await axios.post("/api/exec", {
       srcCode: content,
-      langId: 54,
+      langId: languageId,
       inputTestCase: testcase.input,
     });
 

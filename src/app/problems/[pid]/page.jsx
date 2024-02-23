@@ -5,7 +5,7 @@ import TestCaseView from "@/components/UICustom/Editor/TestCaseView";
 import { ResizableDemo } from "@/components/UICustom/Editor/Windows";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { RightCircleOutlined } from "@ant-design/icons";
+import { CalendarFilled, RightCircleOutlined } from "@ant-design/icons";
 import {
   Dialog,
   DialogContent,
@@ -22,10 +22,34 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
+
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { compareOutputs } from "@/lib/helperFunctions/exec/outputComp";
-import { useProblem } from "@/lib/hooks/queries";
+import { useProblem, useUserSubmissions } from "@/lib/hooks/queries";
 
 const ProblemPage = ({ params }) => {
   const pid = params.pid;
@@ -33,10 +57,28 @@ const ProblemPage = ({ params }) => {
   const { problem, isProblemLoading, isProblemError, problemError } =
     useProblem(pid);
 
+  const {
+    isSubmissionsError,
+    isSubmissionsLoading,
+    submissions,
+    submissionsError,
+    refetchSubmissions,
+  } = useUserSubmissions(pid);
+
   const [content, setContent] = useState("");
   const [languageValue, setlanguageValue] = useState("javascript");
   const [mounted, setMounted] = useState(false);
   const [tcs, setTcs] = useState([]);
+  const [tcErr, setTcErr] = useState(null);
+  const [failedTestCase, setFailedTestCase] = useState(null);
+
+  const languageIdMap = new Map([
+    ["javascript", 63],
+    ["python", 71],
+    ["java", 62],
+    ["c", 50],
+    ["cpp", 54],
+  ]);
 
   useEffect(() => {
     setMounted(true);
@@ -44,14 +86,14 @@ const ProblemPage = ({ params }) => {
 
   useEffect(() => {
     if (problem) {
-      console.log("inside erff");
-      console.log(problem?.testcases);
       for (let i = 0; i < problem?.testcases.length; i++) {
         const tc = problem.testcases[i];
         tc.res = "";
         tc.passed = 0;
         tc.isRunning = false;
-        console.log(tc);
+
+        if (tcs.find((tcase) => tcase._id === tc._id)) continue;
+
         setTcs((prev) => [...prev, tc]);
       }
     }
@@ -78,9 +120,11 @@ const ProblemPage = ({ params }) => {
   });
 
   const runner = async (testcase) => {
+    console.log(languageIdMap.get(languageValue));
+
     const { data } = await axios.post("/api/exec", {
       srcCode: content,
-      langId: 54,
+      langId: languageIdMap.get(languageValue),
       inputTestCase: testcase.input,
     });
 
@@ -111,6 +155,9 @@ const ProblemPage = ({ params }) => {
                 key={i}
                 testcase={_}
                 setTestCase={setTestCase}
+                languageId={
+                  languageIdMap.get(languageValue) || languageIdMap.get("cpp")
+                }
               />
             ))}
           </div>
@@ -190,18 +237,53 @@ const ProblemPage = ({ params }) => {
 
                 console.log(tokens);
 
+                let fg = 0;
+
                 for (let i = 0; i < tcs.length; i++) {
                   const token = tokens[i];
                   const testcase = tcs[i];
 
                   const { data } = await axios.get(`/api/exec?token=${token}`);
 
-                  const isTestCasePassed = compareOutputs(
-                    data.res,
-                    testcase.output
-                  ).isMatch;
+                  const comparison = compareOutputs(data.res, testcase.output);
+
+                  const isTestCasePassed = comparison.isMatch;
 
                   console.log(isTestCasePassed);
+
+                  if (!isTestCasePassed) {
+                    setTcErr(comparison);
+                    setFailedTestCase(i);
+                    setTestCase(i, {
+                      res: data.res,
+                      passed: isTestCasePassed === true ? 1 : -1,
+                      isRunning: false,
+                    });
+
+                    const { submission } = await axios.post(
+                      "/api/submissions",
+                      {
+                        problemId: problem._id,
+                        passed: false,
+                        tcNum: i + 1,
+                        testcase: tcs[i],
+                        result: data.res,
+                        comparison,
+                      }
+                    );
+
+                    fg = 1;
+
+                    // set Remaining testcases to not running
+
+                    for (let j = i + 1; j < tcs.length; j++) {
+                      setTestCase(j, {
+                        isRunning: false,
+                      });
+                    }
+
+                    break;
+                  }
 
                   setTestCase(i, {
                     res: data.res,
@@ -209,10 +291,106 @@ const ProblemPage = ({ params }) => {
                     isRunning: false,
                   });
                 }
+
+                if (fg == 0) {
+                  setTcErr(null);
+                  setFailedTestCase(null);
+
+                  const { submission } = await axios.post("/api/submissions", {
+                    problemId: problem._id,
+                    passed: true,
+                    tcNum: tcs.length,
+                  });
+                }
+
+                // refetch submissions
+
+                refetchSubmissions();
               }}
             >
               <RightCircleOutlined className="text-2xl" />
             </Button>
+
+            <Drawer className="">
+              <DrawerTrigger className="w-10 h-10 text-primary-foreground flex items-center justify-center rounded-full bg-primary">
+                <CalendarFilled className="" />
+              </DrawerTrigger>
+              <DrawerContent className="">
+                <DrawerHeader className={"mb-3"}>
+                  <DrawerTitle className="">Submissions tab</DrawerTitle>
+                  <DrawerDescription className="">
+                    View Your Past Submissions here
+                  </DrawerDescription>
+                </DrawerHeader>
+
+                <Tabs defaultValue="submissions" className="">
+                  <TabsList>
+                    <TabsTrigger value="submissions">Submissions</TabsTrigger>
+                    <TabsTrigger value="error">Error</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="submissions">
+                    <Table>
+                      <TableCaption>
+                        A list of your recent Submissions.
+                      </TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[100px]">Sid</TableHead>
+                          <TableHead>Status</TableHead>
+
+                          <TableHead className="text-right">Last TC</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {submissions?.map((submission, i) => (
+                          <TableRow key={i}>
+                            <TableCell>{i + 1}</TableCell>
+                            <TableCell>
+                              {submission.success ? "Passed" : "Failed"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {submission.tcNum}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    {/* {submissions?.map((submission, i) => (
+                      <div key={i}>
+                        <p>{submission.tcNum}</p>
+                        <p>{submission.success ? "Passed" : "Failed"}</p>
+                      </div>
+                    ))} */}
+                  </TabsContent>
+                  <TabsContent value="error">
+                    <div className="flex flex-col gap-y-4 pl-4">
+                      <div>
+                        {tcErr?.differences?.map((diff, i) => (
+                          <div key={i}>
+                            <p>{diff}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <p>Expected Output</p>
+                        <p>{tcs[failedTestCase]?.output}</p>
+                      </div>
+                      <div>
+                        <p>Received Output</p>
+                        <p>{tcs[failedTestCase]?.res}</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <DrawerFooter>
+                  <DrawerClose>
+                    <Button variant="outline">Close</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
       </div>

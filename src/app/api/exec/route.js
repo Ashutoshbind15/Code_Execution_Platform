@@ -6,7 +6,7 @@ export const POST = async (req, res) => {
 
   const jsonBody = await req.json();
   const { srcCode, langId, inputTestCase } = jsonBody;
-  console.log(srcCode.toString(), langId);
+  console.log(langId);
 
   const options = {
     method: "POST",
@@ -27,7 +27,7 @@ export const POST = async (req, res) => {
       options
     );
     const data = await res.json();
-    console.log(data);
+
     return NextResponse.json(data, { status: 200 });
   } catch (e) {
     console.error(e);
@@ -54,6 +54,9 @@ export const GET = async (req) => {
       if (data.status.id === 3) {
         const strData = data.stdout;
         return NextResponse.json({ res: strData }, { status: 200 });
+      } else if (data.status.id > 3) {
+        const status = data.status.id;
+        return NextResponse.json({ status }, { status: 400 });
       }
     } catch (e) {
       return NextResponse.json(e, { status: 400 });

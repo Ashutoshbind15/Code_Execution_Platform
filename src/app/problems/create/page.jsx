@@ -1,6 +1,5 @@
 "use client";
 
-import TestCaseView from "@/components/UICustom/Editor/TestCaseView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const CreateProblemPage = () => {
   // Form state
@@ -61,102 +69,115 @@ const CreateProblemPage = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title</label>
-          <Input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label>Description</label>
-          <Textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label>Difficulty</label>
-          <Select
-            name="difficulty"
-            value={formData.difficulty}
-            onValueChange={(e) =>
-              handleChange({ target: { name: "difficulty", value: e } })
-            }
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a Difficulty Level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Difficulty</SelectLabel>
-
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label>Input</label>
-          <Textarea
-            name="input"
-            value={formData.input}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <label>Output</label>
-          <Textarea
-            name="output"
-            value={formData.output}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          {testcases.map((testcase, index) => (
-            <div
-              key={index}
-              className="my-2 border-y-2 border-black border-dashed"
-            >
-              <p>Input: {testcase.input}</p>
-              <p>Output: {testcase.output}</p>
-            </div>
-          ))}
+    <div className="py-16">
+      <form onSubmit={handleSubmit} className="flex w-full items-center">
+        <div className="w-1/2 px-10 flex flex-col gap-y-5">
+          <div>
+            <label>Title</label>
+            <Input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </div>
 
           <div>
-            <label>Testcase Input</label>
-            <Input
-              type="text"
-              value={tcInput}
-              onChange={(e) => setTcInput(e.target.value)}
+            <label>Description</label>
+            <Textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
             />
-
-            <label>Testcase Output</label>
-            <Input
-              type="text"
-              value={tcOutput}
-              onChange={(e) => setTcOutput(e.target.value)}
-            />
-
-            <Button type="button" onClick={addTestcase}>
-              Add Testcase
-            </Button>
           </div>
+
+          <div>
+            <label>Difficulty</label>
+            <Select
+              name="difficulty"
+              value={formData.difficulty}
+              onValueChange={(e) =>
+                handleChange({ target: { name: "difficulty", value: e } })
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a Difficulty Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Difficulty</SelectLabel>
+
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <button type="submit">Submit</button>
         </div>
 
-        <button type="submit">Submit</button>
+        <div className="w-1/2 px-10 flex flex-col gap-y-5">
+          <div>
+            <label>Input</label>
+            <Textarea
+              name="input"
+              value={formData.input}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <label>Output</label>
+            <Textarea
+              name="output"
+              value={formData.output}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            {testcases.map((testcase, index) => (
+              <div
+                key={index}
+                className="my-2 border-y-2 border-black border-dashed"
+              >
+                <p>Input: {testcase.input}</p>
+                <p>Output: {testcase.output}</p>
+              </div>
+            ))}
+          </div>
+
+          <Dialog>
+            <DialogTrigger className="bg-primary text-primary-foreground p-2 rounded-xl">
+              Add TestCase
+            </DialogTrigger>
+            <DialogContent className="flex flex-col gap-y-5">
+              <div>
+                <label>Testcase Input</label>
+                <Textarea
+                  type="text"
+                  value={tcInput}
+                  onChange={(e) => setTcInput(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label>Testcase Output</label>
+                <Textarea
+                  type="text"
+                  value={tcOutput}
+                  onChange={(e) => setTcOutput(e.target.value)}
+                />
+              </div>
+
+              <Button type="button" onClick={addTestcase}>
+                Add Testcase
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
       </form>
     </div>
   );
