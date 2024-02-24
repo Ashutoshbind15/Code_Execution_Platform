@@ -20,6 +20,9 @@ const Navbar = () => {
         <Link href={"/problems"} className="text-md text-primary ml-5">
           Problems
         </Link>
+        <Link href={"/contests"} className="text-md text-primary ml-5">
+          Contests
+        </Link>
         <Link href={"/problems/create"} className="text-md text-primary ml-5">
           Create Problems
         </Link>
