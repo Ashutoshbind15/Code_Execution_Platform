@@ -13,6 +13,8 @@ const ContestSchema = new mongoose.Schema({
       time: { type: Date },
     },
   ],
+  startTime: { type: Date },
+  endTime: { type: Date },
 });
 
 const Contest =

@@ -13,6 +13,7 @@ const problemSchema = new mongoose.Schema({
   outputDescription: { type: String },
   difficulty: { type: String },
   contributedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  visibility: { type: Boolean, default: true },
 });
 
 const Problem =

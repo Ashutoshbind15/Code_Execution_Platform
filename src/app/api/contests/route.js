@@ -5,8 +5,15 @@ import { NextResponse } from "next/server";
 export const POST = async (req) => {
   await connectDB();
   const jsonBody = await req.json();
-  const { title, description, div } = jsonBody;
-  const contest = new Contest({ title, description, div });
+  const { title, description, div, problems, startTime, endTime } = jsonBody;
+  const contest = new Contest({
+    title,
+    description,
+    div,
+    problems,
+    startTime,
+    endTime,
+  });
   await contest.save();
   return NextResponse.json({ contest }, { status: 201 });
 };

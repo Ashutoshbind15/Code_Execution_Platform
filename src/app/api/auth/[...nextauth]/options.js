@@ -2,6 +2,8 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import GithubProvider from "next-auth/providers/github";
 
+import jwt from "jsonwebtoken";
+
 export const authOptions = {
   providers: [
     GithubProvider({
@@ -33,12 +35,24 @@ export const authOptions = {
       if (user) {
         token.uid = user.id.toString(); // Convert MongoDB ObjectId to string for the JWT
         token.role = user.role; // Add user role to JWT
+
+        token.externalJwt = jwt.sign(
+          {
+            sub: user.id,
+            role: user.role,
+          },
+          process.env.EXTERNAL_SECRET ?? "",
+          { expiresIn: "30d" }
+        );
       }
       return token;
     },
     async session({ session, token }) {
       session.user.id = token.uid; // Assign database ID to session
       session.user.role = token.role; // Include role in session
+
+      session.externalJwt = token.externalJwt; // Include external JWT in session
+
       return session;
     },
   },

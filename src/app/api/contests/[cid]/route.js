@@ -1,4 +1,5 @@
 import Contest from "@/models/Contest";
+import Problem from "@/models/Problem";
 import { NextResponse } from "next/server";
 import { io } from "socket.io-client";
 
@@ -14,7 +15,12 @@ export const POST = async (req, { params }) => {
   const { uid, pid } = jsonBody;
 
   //   const contest = await Contest;
-  const contest = await Contest.findById(cid);
+  const contest = await Contest.findById(cid).populate([
+    {
+      path: "problems",
+      model: Problem,
+    },
+  ]);
   const contestLeaderboard = contest.leaderboard;
 
   const user = contestLeaderboard.find((user) => {
@@ -46,12 +52,17 @@ export const POST = async (req, { params }) => {
       cid,
       { leaderboard: contestLeaderboard },
       { new: true }
-    );
+    ).populate([
+      {
+        path: "problems",
+        model: Problem,
+      },
+    ]);
 
     return NextResponse.json({ contestUpdated }, { status: 201 });
   } else {
     contest.leaderboard.push({ uid, points: pid, time: new Date() });
     await contest.save();
-    return NextResponse.json({ contest }, { status: 201 });
+    return NextResponse.json({ contestUpdated: contest }, { status: 201 });
   }
 };

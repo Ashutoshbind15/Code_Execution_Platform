@@ -18,3 +18,8 @@ export const getSubmissions = async (pid) => {
   const { data } = await axios.get(`/api/submissions?pid=${pid}`);
   return data;
 };
+
+export const getContests = async () => {
+  const { data } = await axios.get("/api/contests");
+  return data;
+};

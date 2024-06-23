@@ -1,4 +1,10 @@
-import { getProblem, getProblems, getSubmissions, getUser } from "@/lib/apis";
+import {
+  getProblem,
+  getProblems,
+  getSubmissions,
+  getUser,
+  getContests,
+} from "@/lib/apis";
 import { useQuery } from "@tanstack/react-query";
 
 export const useProblems = () => {
@@ -13,6 +19,20 @@ export const useProblems = () => {
     problemsError: error,
   };
 };
+
+export const useContests = () => {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["contests"],
+    queryFn: getContests,
+  });
+  return {
+    contests: data?.contests,
+    isContestsLoading: isLoading,
+    isContestsError: isError,
+    contestsError: error,
+  };
+};
+
 export const useProblem = (id) => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["problems", `${id}`],
