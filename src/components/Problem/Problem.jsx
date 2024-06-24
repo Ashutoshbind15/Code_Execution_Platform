@@ -51,7 +51,7 @@ import axios from "axios";
 import { compareOutputs } from "@/lib/helperFunctions/exec/outputComp";
 import { useProblem, useUserSubmissions } from "@/lib/hooks/queries";
 
-const ContestProblem = ({ problem }) => {
+const ContestProblem = ({ problem, ACHandler, pid }) => {
   const {
     isSubmissionsError,
     isSubmissionsLoading,
@@ -298,6 +298,8 @@ const ContestProblem = ({ problem }) => {
                     passed: true,
                     tcNum: tcs.length,
                   });
+
+                  ACHandler();
                 }
 
                 // this means all testcases passed

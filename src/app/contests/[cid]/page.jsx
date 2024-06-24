@@ -7,6 +7,54 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Countdown from "react-countdown";
 
+const calculateRank = (leaderboard, user) => {
+  leaderboard.sort(
+    (a, b) => b.points - a.points || new Date(a.time) - new Date(b.time)
+  );
+  const rank = leaderboard.findIndex((entry) => entry.uid === user?.id);
+  return rank === -1 ? leaderboard.length + 1 : rank + 1;
+};
+
+const getTotalUsers = (leaderboard) => {
+  return leaderboard.length;
+};
+
+const getTop5Users = (leaderboard) => {
+  leaderboard.sort(
+    (a, b) => b.points - a.points || new Date(a.time) - new Date(b.time)
+  );
+  return leaderboard.slice(0, 5);
+};
+
+const Leaderboard = ({ leaderboard, currentUser }) => {
+  const sortedLeaderboard = [...leaderboard].sort(
+    (a, b) => b.points - a.points || new Date(a.time) - new Date(b.time)
+  );
+  const rank = calculateRank(sortedLeaderboard, currentUser);
+  const top5Users = sortedLeaderboard.slice(0, 5);
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Leaderboard</h1>
+      <div className="mb-4">
+        <p>Your Rank: {rank}</p>
+        <p>Total Users Attempted: {leaderboard.length}</p>
+      </div>
+      <h2 className="text-xl font-semibold mb-2">Top 5 Users</h2>
+      <ul className="list-disc list-inside">
+        {top5Users.map((user, index) => (
+          <li key={user.uid}>
+            <span>
+              {index + 1}. {user.uid} - {user.points} points (Time:{" "}
+              {new Date(user.time).toLocaleString()})
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 const ContestPage = () => {
   // client -> [problems => {pid, solved}], leaderboard -> [{uid, points, time, rank}]
   // server -> leaderboard -> [{uid, points, time, rank}], the ranks and leaderboard is computed on the server and sends it to the client
@@ -74,6 +122,8 @@ const ContestPage = () => {
           <div>{problem.title}</div>
         </div>
       ))}
+
+      <Leaderboard leaderboard={leaderboard} currentUser={user} />
     </div>
   );
 };

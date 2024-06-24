@@ -1,6 +1,8 @@
 "use client";
 
+import ContestProblem from "@/components/Problem/Problem";
 import { Button } from "@/components/ui/button";
+import { useProblem } from "@/lib/hooks/queries";
 import useSocket from "@/lib/hooks/socket";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -12,6 +14,9 @@ const ContestProblemPage = ({ params }) => {
   const [result, setResult] = useState(null);
 
   const { pid, cid } = params;
+
+  const { problem, isProblemError, isProblemLoading, problemError } =
+    useProblem(pid);
 
   useEffect(() => {
     const asyncwrapper = async () => {
@@ -57,17 +62,15 @@ const ContestProblemPage = ({ params }) => {
     }).catch(setResult);
   };
 
+  if (isProblemLoading) return <div>Loading...</div>;
+  if (isProblemError) return <div>Error: {problemError.message}</div>;
+
   return (
-    <div>
-      <div>
-        Problem {pid} for contest {cid}
-      </div>
-
-      <div>{result}</div>
-
-      <Button onClick={mockupResultPassedSetter}>Pass</Button>
-      <Button onClick={mockupResultFailedSetter}>Fail</Button>
-    </div>
+    <ContestProblem
+      problem={problem}
+      ACHandler={mockupResultPassedSetter}
+      pid={pid}
+    />
   );
 };
 
