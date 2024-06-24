@@ -4,7 +4,7 @@ import useSocket from "@/lib/hooks/socket";
 import { useEffect } from "react";
 
 const HomePage = () => {
-  const socket = useSocket("http://localhost:3001");
+  const socket = useSocket(process.env.NEXT_PUBLIC_WSS_URI);
 
   useEffect(() => {
     if (socket) {

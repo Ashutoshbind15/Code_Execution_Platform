@@ -65,7 +65,7 @@ const ContestPage = () => {
   const [leaderboard, setLeaderboard] = useState([]); // [{uid, points, time, rank}
   const [contest, setContest] = useState(null);
   const [probems, setProblems] = useState([]);
-  const socket = useSocket("http://localhost:3001");
+  const socket = useSocket(process.env.NEXT_PUBLIC_WSS_URI);
   const params = useParams();
   const cid = params.cid;
   const rtr = useRouter();

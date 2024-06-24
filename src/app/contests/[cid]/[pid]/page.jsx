@@ -7,7 +7,7 @@ import useSocket from "@/lib/hooks/socket";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
-const sockerserverUri = "http://localhost:3001";
+const sockerserverUri = process.env.NEXT_PUBLIC_WSS_URI;
 
 const ContestProblemPage = ({ params }) => {
   const socket = useSocket(sockerserverUri);
