@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 
-const engineURI = process.env.EXEC_ENGINE_URI;
+const engineURI =
+  process.env.IS_SELF_HOSTED === "true"
+    ? process.env.EXEC_ENGINE_URI
+    : "https://" + process.env.RAPID_API_HOST;
+
 export const POST = async (req, res) => {
   // instance of judge0
 
   const jsonBody = await req.json();
   const { srcCode, langId, inputTestCase } = jsonBody;
   console.log(langId);
+
+  const isSelfHosted = process.env.IS_SELF_HOSTED === "true";
 
   const options = {
     method: "POST",
@@ -20,6 +26,11 @@ export const POST = async (req, res) => {
       stdin: inputTestCase,
     }),
   };
+
+  if (!isSelfHosted) {
+    options.headers["x-rapidapi-key"] = process.env.RAPID_API_KEY;
+    options.headers["x-rapidAPI-host"] = process.env.RAPID_API_HOST;
+  }
 
   try {
     const res = await fetch(
@@ -42,6 +53,13 @@ export const GET = async (req) => {
   const options = {
     method: "GET",
   };
+
+  if (process.env.IS_SELF_HOSTED === "false") {
+    options.headers = {
+      "x-rapidapi-key": process.env.RAPID_API_KEY,
+      "x-rapidAPI-host": process.env.RAPID_API_HOST,
+    };
+  }
 
   while (true) {
     try {

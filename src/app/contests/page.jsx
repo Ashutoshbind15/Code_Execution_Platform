@@ -1,115 +1,60 @@
 "use client";
 
-import { Checkbox } from "@/components/ui/checkbox";
-import { useUser } from "@/lib/hooks/queries";
-import axios from "axios";
-import { set } from "mongoose";
-import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useContests } from "@/lib/hooks/queries";
+import { useRouter } from "next/navigation";
 
-const ContestPage = () => {
-  const [users, setUsers] = useState([]);
-  const { user, isUserError, isUserLoading, userError } = useUser();
-  const [socket, setSocket] = useState(null);
-  const prpblemList = [1, 2, 3, 4, 5];
+const ContestsPage = () => {
+  const { contests } = useContests();
 
-  const wsApi = "http://localhost:3001";
-
-  const updateRankings = () => {};
-
-  const sendPointsToServer = async (pid) => {
-    await axios.post(`/api/contests/65d9ed3f017e31524456ca86`, {
-      uid: user.id,
-      pid,
-    });
-  };
-
-  const fetchInitialUsers = async () => {
-    const { data } = await axios.get(`${wsApi}/users`);
-    const initialUsers = data.users;
-    console.log(data);
-    setUsers(initialUsers);
-  };
-
-  // client -> [problems => {pid, solved}], leaderboard -> [{uid, points, time, rank}]
-  // server -> leaderboard -> [{uid, points, time, rank}], the ranks and leaderboard is computed on the server and sends it to the ws server
-  // wsserver -> emits back to the client the updated leaderboard and the points
-  // client -> onSubmit(pid) -> sendPointsToServer(pid, points) -> updateRankings() -> emitRankings() -> wsserver -> emitRankings() -> client -> updateRankings()
-
-  useEffect(() => {
-    fetchInitialUsers();
-
-    const socket = io(wsApi);
-    if (user) {
-      setSocket(socket);
-
-      socket.on("connect", () => {
-        socket.emit("authenticate", user.id);
-      });
-
-      socket.on("authenticated", (message) => {
-        console.log(message.msg);
-        console.log(message.userId);
-
-        setUsers((prev) => [...prev, user.id]);
-      });
-    }
-
-    return () => {
-      if (socket) {
-        console.log("disconnecting");
-        socket.disconnect();
-      }
-    };
-  }, [user]);
-
-  useEffect(() => {
-    if (socket) {
-      socket.on("leaderboard", (msg) => {
-        console.log(msg); // Handle incoming messages
-      });
-
-      socket.on("joincontest", (data) => {
-        const uid = data.uid;
-        setUsers((prev) => [...prev, uid]);
-      });
-
-      socket.on("leavecontest", (data) => {
-        const uid = data.uid;
-        setUsers((prev) => prev.filter((u) => u !== uid));
-      });
-    }
-
-    return () => {
-      if (socket) {
-        console.log("disconnecting");
-        socket.disconnect();
-      }
-    };
-  }, [socket]);
+  const rtr = useRouter();
 
   return (
-    <div>
-      {users?.map((u) => (
-        <div key={u.toString()}>{JSON.stringify(u)}</div>
-      ))}
-
-      {prpblemList.map((p) => (
-        <div className="flex items-center space-x-2" key={p}>
-          <Checkbox
-            id="terms2"
-            onCheckedChange={(e) => sendPointsToServer(p)}
-          />
-          <label
-            htmlFor="terms2"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+    <Table>
+      <TableCaption>A list of our comprehensive pset.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">S. No</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Difficulty</TableHead>
+          {/* <TableHead className="text-right">Submissions</TableHead> */}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {contests?.map((contest, i) => (
+          <TableRow
+            key={i}
+            className="cursor-pointer"
+            onClick={() => {
+              rtr.push(`/contests/${contest._id}`);
+            }}
           >
-            {p}
-          </label>
-        </div>
-      ))}
-    </div>
+            <TableCell>{i + 1}</TableCell>
+            <TableCell>{contest?.title}</TableCell>
+            <TableCell>{contest?.div}</TableCell>
+            {/* <TableCell className="text-right">{problem?.submissions}</TableCell> */}
+          </TableRow>
+        ))}
+      </TableBody>
+      {/* <TableFooter>
+        <TableRow>
+          <TableCell colSpan={3}>Total Submissions</TableCell>
+          <TableCell className="text-right">
+            {problems.reduce((acc, problem) => acc + problem.submissions, 0)}
+          </TableCell>
+        </TableRow>
+      </TableFooter> */}
+    </Table>
   );
 };
 
-export default ContestPage;
+export default ContestsPage;
