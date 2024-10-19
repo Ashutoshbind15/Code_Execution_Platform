@@ -10,7 +10,10 @@ export const GET = async () => {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    NextResponse.json({ error: "You are not authenticated" }, { status: 401 });
+    return NextResponse.json(
+      { error: "You are not authenticated" },
+      { status: 401 }
+    );
   }
 
   const user = session.user;

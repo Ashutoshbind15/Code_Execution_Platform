@@ -5,7 +5,11 @@ import TestCaseView from "@/components/UICustom/Editor/TestCaseView";
 import { ResizableDemo } from "@/components/UICustom/Editor/Windows";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { CalendarFilled, RightCircleOutlined } from "@ant-design/icons";
+import {
+  CalendarFilled,
+  LeftCircleOutlined,
+  RightCircleOutlined,
+} from "@ant-design/icons";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +54,7 @@ import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { compareOutputs } from "@/lib/helperFunctions/exec/outputComp";
 import { useProblem, useUserSubmissions } from "@/lib/hooks/queries";
+import { toast } from "sonner";
 
 const ProblemPage = ({ params }) => {
   const pid = params.pid;
@@ -72,6 +77,9 @@ const ProblemPage = ({ params }) => {
   const [tcErr, setTcErr] = useState(null);
   const [failedTestCase, setFailedTestCase] = useState(null);
 
+  const [isBatchSubmissionResultLoading, setIsBatchSubmissionResultLoading] =
+    useState(false);
+
   const languageIdMap = new Map([
     ["javascript", 63],
     ["python", 71],
@@ -85,14 +93,17 @@ const ProblemPage = ({ params }) => {
   }, []);
 
   useEffect(() => {
-    if (problem) {
-      for (let i = 0; i < problem?.testcases.length; i++) {
-        const tc = problem.testcases[i];
+    if (
+      problem &&
+      problem?.exampleTestcases &&
+      problem?.exampleTestcases?.length
+    ) {
+      setTcs([]);
+      for (let i = 0; i < problem?.exampleTestcases.length; i++) {
+        const tc = problem.exampleTestcases[i];
         tc.res = "";
         tc.passed = 0;
         tc.isRunning = false;
-
-        if (tcs.find((tcase) => tcase._id === tc._id)) continue;
 
         setTcs((prev) => [...prev, tc]);
       }
@@ -112,27 +123,103 @@ const ProblemPage = ({ params }) => {
     });
   };
 
-  const tcForm = useForm({
-    defaultValues: {
-      input: "",
-      output: "",
-    },
-  });
+  const batchRunner = async () => {
+    try {
+      console.log("batch runner");
+      setIsBatchSubmissionResultLoading(true);
 
-  const runner = async (testcase) => {
-    console.log(languageIdMap.get(languageValue));
+      const { data } = await axios.post(`/api/problems/${pid}/definedtcs`, {
+        srcCode: content,
+        langId: languageIdMap.get(languageValue),
+      });
 
-    const { data } = await axios.post("/api/exec", {
-      srcCode: content,
-      langId: languageIdMap.get(languageValue),
-      inputTestCase: testcase.input,
+      if (data.msg === "EXECERR") {
+        console.log("Execution Error");
+        return;
+      }
+
+      if (data.msg === "WA") {
+        console.log("Wrong Answer");
+        setTcErr(data);
+        toast.error("Wrong answer, check the error tab");
+        return;
+      }
+
+      toast.success("All testcases passed");
+
+      // refetch submissions
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsBatchSubmissionResultLoading(false);
+      refetchSubmissions();
+    }
+  };
+
+  const AddTestCaseFrom = ({ onSubmit }) => {
+    const tcForm = useForm({
+      defaultValues: {
+        input: "",
+        output: "",
+      },
     });
 
-    const token = data.token;
+    return (
+      <Dialog>
+        <DialogTrigger className="rounded-full w-10 h-10 bg-primary text-primary-foreground">
+          +
+        </DialogTrigger>
 
-    if (token) {
-      return token;
-    }
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Want new testcases?</DialogTitle>
+            <DialogDescription>
+              Fill the following to add testcases
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...tcForm}>
+            <form
+              onSubmit={tcForm.handleSubmit((vs) => {
+                onSubmit(vs);
+              })}
+              className="flex flex-col gap-y-4 items-stretch"
+            >
+              <FormField
+                control={tcForm.control}
+                name="input"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Inputs</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="input" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={tcForm.control}
+                name="output"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>outputs</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="output" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <Button type="submit">Add</Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   return (
@@ -164,151 +251,116 @@ const ProblemPage = ({ params }) => {
 
           <div className="flex flex-col items-center gap-y-3">
             {mounted && (
-              <Dialog>
-                <DialogTrigger className="rounded-full w-10 h-10 bg-primary text-primary-foreground">
-                  +
-                </DialogTrigger>
-
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Want new testcases?</DialogTitle>
-                    <DialogDescription>
-                      Fill the following to add testcases
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <Form {...tcForm}>
-                    <form
-                      onSubmit={tcForm.handleSubmit((vs) => {
-                        setTcs((p) => [
-                          ...p,
-                          { ...vs, res: "", passed: 0, isRunning: false },
-                        ]);
-                      })}
-                      className="flex flex-col gap-y-4 items-stretch"
-                    >
-                      <FormField
-                        control={tcForm.control}
-                        name="input"
-                        render={({ field }) => {
-                          return (
-                            <FormItem>
-                              <FormLabel>Inputs</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="input" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                      <FormField
-                        control={tcForm.control}
-                        name="output"
-                        render={({ field }) => {
-                          return (
-                            <FormItem>
-                              <FormLabel>outputs</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="output" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          );
-                        }}
-                      />
-
-                      <Button type="submit">Add</Button>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              <AddTestCaseFrom
+                onSubmit={(vs) => {
+                  setTcs((p) => [
+                    ...p,
+                    { ...vs, res: "", passed: 0, isRunning: false },
+                  ]);
+                }}
+              />
             )}
             <Button
               className="w-10 h-10 rounded-full flex items-center justify-center"
-              onClick={async () => {
-                console.log("batch runner");
+              onClick={batchRunner}
+            >
+              <RightCircleOutlined className="text-2xl" />
+            </Button>
 
-                const tokens = [];
+            <Button
+              onClick={async () => {
+                console.log("Call the ep for the local defined testcases");
 
                 for (let i = 0; i < tcs.length; i++) {
-                  setTestCase(i, { isRunning: true });
-                  const token = await runner(tcs[i]);
-                  tokens.push(token);
+                  setTestCase(i, { isRunning: true, res: "" });
                 }
 
-                console.log(tokens);
+                try {
+                  const { data } = await axios.post(
+                    `/api/problems/${pid}/iptcs`,
+                    {
+                      srcCode: content,
+                      langId: languageIdMap.get(languageValue),
+                      tcs: tcs.map((tcase) => {
+                        return {
+                          input: tcase.input,
+                          output: tcase.output,
+                        };
+                      }),
+                    }
+                  );
 
-                let fg = 0;
+                  if (data.msg === "EXECERR") {
+                    console.log("Execution Error");
 
-                for (let i = 0; i < tcs.length; i++) {
-                  const token = tokens[i];
-                  const testcase = tcs[i];
-
-                  const { data } = await axios.get(`/api/exec?token=${token}`);
-
-                  const comparison = compareOutputs(data.res, testcase.output);
-
-                  const isTestCasePassed = comparison.isMatch;
-
-                  console.log(isTestCasePassed);
-
-                  if (!isTestCasePassed) {
-                    setTcErr(comparison);
-                    setFailedTestCase(i);
-                    setTestCase(i, {
-                      res: data.res,
-                      passed: isTestCasePassed === true ? 1 : -1,
-                      isRunning: false,
-                    });
-
-                    const { submission } = await axios.post(
-                      "/api/submissions",
-                      {
-                        problemId: problem._id,
-                        passed: false,
-                        tcNum: i + 1,
-                        testcase: tcs[i],
-                        result: data.res,
-                        comparison,
-                      }
-                    );
-
-                    fg = 1;
-
-                    // set Remaining testcases to not running
-
-                    for (let j = i + 1; j < tcs.length; j++) {
-                      setTestCase(j, {
+                    for (let i = 0; i < tcs.length; i++) {
+                      setTestCase(i, {
                         isRunning: false,
+                        res: tcs[i].output,
+                        passed: 0,
                       });
                     }
 
-                    break;
+                    return;
                   }
 
-                  setTestCase(i, {
-                    res: data.res,
-                    passed: isTestCasePassed === true ? 1 : -1,
-                    isRunning: false,
-                  });
+                  if (data.msg === "WA") {
+                    console.log("Wrong Answer", data);
+                    setTcErr(data);
+                    toast.error("Wrong answer, check the error tab");
+
+                    const wrongTcIndex = data.tcNum - 1;
+
+                    // set the previous testcases to passed
+
+                    for (let i = 0; i < wrongTcIndex; i++) {
+                      setTestCase(i, {
+                        isRunning: false,
+                        res: tcs[i].output,
+                        passed: 1,
+                      });
+                    }
+
+                    // set the failed testcase
+
+                    setTestCase(wrongTcIndex, {
+                      isRunning: false,
+                      res: data.res,
+                      passed: -1,
+                    });
+
+                    // set the rest to normal
+
+                    for (let i = wrongTcIndex + 1; i < tcs.length; i++) {
+                      setTestCase(i, {
+                        isRunning: false,
+                        res: "",
+                        passed: 0,
+                      });
+                    }
+
+                    return;
+                  }
+
+                  for (let i = 0; i < tcs.length; i++) {
+                    setTestCase(i, {
+                      isRunning: false,
+                      res: tcs[i].output,
+                      passed: 1,
+                    });
+                  }
+
+                  toast.success("All defined testcases passed");
+
+                  // refetch submissions
+                } catch (error) {
+                  console.log(error);
+                } finally {
+                  // set the loading to false
                 }
-
-                if (fg == 0) {
-                  setTcErr(null);
-                  setFailedTestCase(null);
-
-                  const { submission } = await axios.post("/api/submissions", {
-                    problemId: problem._id,
-                    passed: true,
-                    tcNum: tcs.length,
-                  });
-                }
-
-                // refetch submissions
-
-                refetchSubmissions();
               }}
             >
-              <RightCircleOutlined className="text-2xl" />
+              <LeftCircleOutlined className="text-2xl" />
             </Button>
 
             <Drawer className="">

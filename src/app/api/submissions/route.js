@@ -34,7 +34,7 @@ export const POST = async (req) => {
       tcNum,
       expected: testcase.output,
       output: result,
-      errors: comparison.differences,
+      subErrors: comparison.differences,
     });
   }
 

@@ -9,6 +9,12 @@ const problemSchema = new mongoose.Schema({
       output: String,
     },
   ],
+  exampleTestcases: [
+    {
+      input: String,
+      output: String,
+    },
+  ],
   inputDescription: { type: String },
   outputDescription: { type: String },
   difficulty: { type: String },
