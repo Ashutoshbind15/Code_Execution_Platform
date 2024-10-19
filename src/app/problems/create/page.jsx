@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Select,
@@ -36,6 +36,7 @@ const CreateProblemPage = () => {
   });
 
   const [testcases, setTestcases] = useState([]);
+  const [exampleTestcases, setExampleTestcases] = useState([]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -50,6 +51,9 @@ const CreateProblemPage = () => {
   const [tcInput, setTcInput] = useState("");
   const [tcOutput, setTcOutput] = useState("");
 
+  const [ExampleTcInput, setExampleTcInput] = useState("");
+  const [ExampleTcOutput, setExampleTcOutput] = useState("");
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,7 +61,11 @@ const CreateProblemPage = () => {
     console.log("Test Cases:", testcases);
     // Add logic to send data to API or another state
 
-    const { data } = await axios.post("/api/problems", { formData, testcases });
+    await axios.post("/api/problems", {
+      formData,
+      testcases,
+      exampleTestcases,
+    });
   };
 
   // Add a new testcase
@@ -66,6 +74,16 @@ const CreateProblemPage = () => {
     setTestcases([...testcases, { input: tcInput, output: tcOutput }]);
     setTcInput("");
     setTcOutput("");
+  };
+
+  const addExampleTestcase = (e) => {
+    e.preventDefault();
+    setExampleTestcases([
+      ...exampleTestcases,
+      { input: ExampleTcInput, output: ExampleTcOutput },
+    ]);
+    setExampleTcInput("");
+    setExampleTcOutput("");
   };
 
   return (
@@ -174,6 +192,47 @@ const CreateProblemPage = () => {
 
               <Button type="button" onClick={addTestcase}>
                 Add Testcase
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          <div>
+            {exampleTestcases?.map((testcase, index) => (
+              <div
+                key={index}
+                className="my-2 border-y-2 border-black border-dashed"
+              >
+                <p>Input: {testcase.input}</p>
+                <p>Output: {testcase.output}</p>
+              </div>
+            ))}
+          </div>
+
+          <Dialog>
+            <DialogTrigger className="bg-primary text-primary-foreground p-2 rounded-xl">
+              Add Example TestCase
+            </DialogTrigger>
+            <DialogContent className="flex flex-col gap-y-5">
+              <div>
+                <label>Example Testcase Input</label>
+                <Textarea
+                  type="text"
+                  value={ExampleTcInput}
+                  onChange={(e) => setExampleTcInput(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label>Example Testcase Output</label>
+                <Textarea
+                  type="text"
+                  value={ExampleTcOutput}
+                  onChange={(e) => setExampleTcOutput(e.target.value)}
+                />
+              </div>
+
+              <Button type="button" onClick={addExampleTestcase}>
+                Add Example Testcase
               </Button>
             </DialogContent>
           </Dialog>

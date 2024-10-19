@@ -32,7 +32,7 @@ export const POST = async (req) => {
 
   const jsonBody = await req.json();
 
-  const { formData, testcases } = jsonBody;
+  const { formData, testcases, exampleTestcases } = jsonBody;
 
   console.log(formData, testcases);
 
@@ -48,6 +48,10 @@ export const POST = async (req) => {
 
   for (let tc of testcases) {
     problem.testcases.push(tc);
+  }
+
+  for (let etc of exampleTestcases) {
+    problem.exampleTestcases.push(etc);
   }
 
   await problem.save();
